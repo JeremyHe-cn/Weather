@@ -6,19 +6,18 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Html;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.ListView;
+import android.widget.Toast;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import me.zlv.weather.bean.WeatherForecast;
-import me.zlv.weather.bean.WeatherInfo;
 import me.zlv.weather.converter.QueryResultConverters;
 import me.zlv.weather.httpservice.QueryWeatherService;
 import me.zlv.weather.result.QueryWeatherResult;
@@ -27,13 +26,17 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class MainActivity extends AppCompatActivity implements Callback<QueryWeatherResult> {
+public class MainActivity extends AppCompatActivity implements Callback<QueryWeatherResult>, View.OnClickListener {
 
     private FloatingActionButton mFab;
-    private TextView mContentTv;
 
     private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
     private Call<QueryWeatherResult> mQueryCall;
+    private Toolbar mToolbar;
+    private ListView mContentLv;
+
+    private ForecastAdapter mAdapter;
+    private List<WeatherForecast> mDisplayForecastList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,51 +58,19 @@ public class MainActivity extends AppCompatActivity implements Callback<QueryWea
     }
 
     private void findWidget() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
 
         mFab = (FloatingActionButton) findViewById(R.id.fab);
-        mContentTv = (TextView) findViewById(R.id.content_tv);
+        mContentLv = (ListView) findViewById(R.id.content_lv);
     }
 
     private void initWidget() {
-        mContentTv.setText("正在请求天气数据...");
+        mToolbar.setTitle("深圳");
     }
 
     private void setListener() {
-        mFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mContentTv.setText("正在请求天气数据...");
-                Drawable drawable = mFab.getDrawable();
-                if (drawable instanceof AnimationDrawable) {
-                    ((AnimationDrawable) drawable).start();
-                }
-                mQueryCall.clone().enqueue(MainActivity.this);
-            }
-        });
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
+        mFab.setOnClickListener(this);
     }
 
     @Override
@@ -107,57 +78,48 @@ public class MainActivity extends AppCompatActivity implements Callback<QueryWea
         if (response.isSuccess()) {
             final QueryWeatherResult result = response.body();
             if (result == null) {
-                mContentTv.setText("查询失败,请稍候重试");
+                Toast.makeText(this, "查询失败,请稍候重试", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            StringBuilder infoBuilder = new StringBuilder();
-            infoBuilder.append(result.getCityInfo().getCity()).append("<br>");
-            infoBuilder.append("最后更新时间： ").append(result.getCityInfo().getUpdateTime()).append("<br>");
-            infoBuilder.append("<br>");
+            mToolbar.setTitle(result.getCityInfo().getCity());
+            mToolbar.setSubtitle(result.getCityInfo().getUpdateTime());
 
-            final WeatherInfo weatherInfo = result.getWeatherInfo();
-            infoBuilder.append("======> 天气状况： ").append("<br>");
-            infoBuilder.append(weatherInfo.getDescription()).append("<br>");
-            infoBuilder.append("温度： ").append(weatherInfo.getTemperature()).append("<br>");
-            infoBuilder.append("湿度： ").append(weatherInfo.getHum()).append("<br>");
-            infoBuilder.append("降雨量： ").append(weatherInfo.getPcpn()).append("<br>");
-            infoBuilder.append("<br>");
+            // TODO: 16-3-16
+//            final WeatherInfo weatherInfo = result.getWeatherInfo();
+//            StringBuilder infoBuilder = new StringBuilder();
+//            infoBuilder.append("======> 天气状况： ").append("<br>");
+//            infoBuilder.append(weatherInfo.getDescription()).append("<br>");
+//            infoBuilder.append("温度： ").append(weatherInfo.getTemperature()).append("<br>");
+//            infoBuilder.append("湿度： ").append(weatherInfo.getHum()).append("<br>");
+//            infoBuilder.append("降雨量： ").append(weatherInfo.getPcpn()).append("<br>");
+//            infoBuilder.append("<br>");
 
             final List<WeatherForecast> forecastList = result.getHourForecastList();
-            if (!forecastList.isEmpty()) {
-                infoBuilder.append("======> 当天天气预测<br>");
-            }
-
+            mDisplayForecastList.clear();
             final long currentTime = System.currentTimeMillis();
             for (WeatherForecast forecast : forecastList) {
-                final String date = forecast.getDate();
+                final String dateText = forecast.getDate();
                 try {
-                    final long time = mDateFormat.parse(date).getTime();
-                    if (time < currentTime) {
-                        continue;
+                    final Date date = mDateFormat.parse(dateText);
+                    final long time = date.getTime();
+                    if (time > currentTime) {
+                        forecast.setDate(dateText.substring(11));
+                        mDisplayForecastList.add(forecast);
                     }
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-
-                infoBuilder.append(date).append("<br>");
-                infoBuilder.append("温度: ").append(forecast.getTemperature()).append("<br>");
-                infoBuilder.append("降雨可能性： ");
-                final int percent = forecast.getPop();
-                if (percent > 50) {
-                    infoBuilder.append("<font color=red>");
-                }
-                infoBuilder.append(percent).append("%");
-                if (percent > 50) {
-                    infoBuilder.append("  WARN!!</font>");
-                }
-                infoBuilder.append("<br><br>");
             }
 
-            mContentTv.setText(Html.fromHtml(infoBuilder.toString()));
+            if (mAdapter == null) {
+                mAdapter = new ForecastAdapter(this, mDisplayForecastList);
+                mContentLv.setAdapter(mAdapter);
+            } else {
+                mAdapter.notifyDataSetChanged();
+            }
         } else {
-            mContentTv.setText("请求失败");
+            Toast.makeText(this, "请求失败", Toast.LENGTH_SHORT).show();
         }
 
         Drawable drawable = mFab.getDrawable();
@@ -168,6 +130,15 @@ public class MainActivity extends AppCompatActivity implements Callback<QueryWea
 
     @Override
     public void onFailure(Call<QueryWeatherResult> call, Throwable t) {
-        mContentTv.setText("请求出现异常 Execption: " + t.toString());
+        Toast.makeText(this, "请求出现异常 Execption: ", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onClick(View v) {
+        Drawable drawable = mFab.getDrawable();
+        if (drawable instanceof AnimationDrawable) {
+            ((AnimationDrawable) drawable).start();
+        }
+        mQueryCall.clone().enqueue(MainActivity.this);
     }
 }
