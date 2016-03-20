@@ -14,6 +14,7 @@ public class QueryWeatherResult {
     private CityInfo cityInfo;
     private WeatherInfo weatherInfo;
     private List<WeatherForecast> hourForecastList;
+    private List<WeatherInfo> dailyWeatherInfoForecastList;
 
     public CityInfo getCityInfo() {
         return cityInfo;
@@ -37,5 +38,13 @@ public class QueryWeatherResult {
 
     public void setHourForecastList(List<WeatherForecast> hourForecastList) {
         this.hourForecastList = hourForecastList;
+    }
+
+    public List<WeatherInfo> getDailyWeatherInfoForecastList() {
+        return dailyWeatherInfoForecastList;
+    }
+
+    public void setDailyWeatherInfoForecastList(List<WeatherInfo> dailyWeatherInfoForecastList) {
+        this.dailyWeatherInfoForecastList = dailyWeatherInfoForecastList;
     }
 }

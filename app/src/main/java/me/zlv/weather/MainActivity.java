@@ -89,8 +89,8 @@ public class MainActivity extends AppCompatActivity implements Callback<QueryWea
 //            final WeatherInfo weatherInfo = result.getWeatherInfo();
 //            StringBuilder infoBuilder = new StringBuilder();
 //            infoBuilder.append("======> 天气状况： ").append("<br>");
-//            infoBuilder.append(weatherInfo.getDescription()).append("<br>");
-//            infoBuilder.append("温度： ").append(weatherInfo.getTemperature()).append("<br>");
+//            infoBuilder.append(weatherInfo.getDescAtDay()).append("<br>");
+//            infoBuilder.append("温度： ").append(weatherInfo.getMinTemperature()).append("<br>");
 //            infoBuilder.append("湿度： ").append(weatherInfo.getHum()).append("<br>");
 //            infoBuilder.append("降雨量： ").append(weatherInfo.getPcpn()).append("<br>");
 //            infoBuilder.append("<br>");
@@ -112,12 +112,8 @@ public class MainActivity extends AppCompatActivity implements Callback<QueryWea
                 }
             }
 
-            if (mAdapter == null) {
-                mAdapter = new ForecastAdapter(this, mDisplayForecastList);
-                mContentLv.setAdapter(mAdapter);
-            } else {
-                mAdapter.notifyDataSetChanged();
-            }
+            mAdapter = new ForecastAdapter(this, mDisplayForecastList, result.getDailyWeatherInfoForecastList());
+            mContentLv.setAdapter(mAdapter);
         } else {
             Toast.makeText(this, "请求失败", Toast.LENGTH_SHORT).show();
         }

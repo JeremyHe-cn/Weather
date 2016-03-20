@@ -46,14 +46,14 @@ public final class QueryWeatherResultConverter implements Converter<ResponseBody
             result.setCityInfo(cityInfo);
 
             // 当前天气状况
-            WeatherInfo weatherInfo = new WeatherInfo();
+            WeatherInfo nowWeatherInfo = new WeatherInfo();
             JSONObject nowJsonObj = bodyJsonObj.getJSONObject("now");
-            weatherInfo.setCode(nowJsonObj.getJSONObject("cond").getInt("code"));
-            weatherInfo.setDescription(nowJsonObj.getJSONObject("cond").getString("txt"));
-            weatherInfo.setTemperature(nowJsonObj.getDouble("tmp"));
-            weatherInfo.setPcpn(nowJsonObj.getInt("pcpn"));
-            weatherInfo.setHum(nowJsonObj.getInt("hum"));
-            result.setWeatherInfo(weatherInfo);
+            nowWeatherInfo.setCodeAtDay(nowJsonObj.getJSONObject("cond").getInt("code"));
+            nowWeatherInfo.setDescAtDay(nowJsonObj.getJSONObject("cond").getString("txt"));
+            nowWeatherInfo.setMinTemperature(nowJsonObj.getDouble("tmp"));
+            nowWeatherInfo.setPcpn(nowJsonObj.getInt("pcpn"));
+            nowWeatherInfo.setHum(nowJsonObj.getInt("hum"));
+            result.setWeatherInfo(nowWeatherInfo);
 
             // 24小时内天气预测
             ArrayList<WeatherForecast> forecastList = new ArrayList<>();
@@ -70,6 +70,32 @@ public final class QueryWeatherResultConverter implements Converter<ResponseBody
                 forecastList.add(weatherForecast);
             }
             result.setHourForecastList(forecastList);
+
+            // 近几天天气预测
+            JSONArray dailyForecastJsonArray = bodyJsonObj.getJSONArray("daily_forecast");
+            ArrayList<WeatherInfo> dailyWeatherInfoForecastList = new ArrayList<>();
+            final int dailyForecastLen = dailyForecastJsonArray.length();
+            for (int i = 0; i < dailyForecastLen; i++) {
+                JSONObject forecastJsonObj = dailyForecastJsonArray.getJSONObject(i);
+                WeatherInfo weatherInfo = new WeatherInfo();
+                JSONObject condJsonObj = forecastJsonObj.getJSONObject("cond");
+                weatherInfo.setCodeAtDay(condJsonObj.getInt("code_d"));
+                weatherInfo.setDescAtDay(condJsonObj.getString("txt_d"));
+                weatherInfo.setCodeAtNight(condJsonObj.getInt("code_n"));
+                weatherInfo.setDescAtNight(condJsonObj.getString("txt_n"));
+
+                weatherInfo.setDate(forecastJsonObj.getString("date"));
+                weatherInfo.setHum(forecastJsonObj.getInt("hum"));
+                weatherInfo.setPcpn(forecastJsonObj.getDouble("pcpn"));
+                weatherInfo.setPop(forecastJsonObj.getInt("pop"));
+
+                JSONObject tempJsonObj = forecastJsonObj.getJSONObject("tmp");
+                weatherInfo.setMinTemperature(tempJsonObj.getInt("min"));
+                weatherInfo.setMaxTemperature(tempJsonObj.getInt("max"));
+
+                dailyWeatherInfoForecastList.add(weatherInfo);
+            }
+            result.setDailyWeatherInfoForecastList(dailyWeatherInfoForecastList);
 
         } catch (JSONException e) {
             e.printStackTrace();

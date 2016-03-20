@@ -6,44 +6,90 @@ package me.zlv.weather.bean;
  */
 public class WeatherInfo {
 
-    private double temperature;
-    private int code;
-    private String description;
+    private String date;
+    private double minTemperature;
+    private double maxTemperature;
+    private int codeAtDay;
+    private int codeAtNight;
+    private String descAtDay;
+    private String descAtNight;
     // 降雨量
-    private int pcpn;
+    private double pcpn;
+    // 降雨概率
+    private int pop;
     // 湿度
     private int hum;
 
-    public double getTemperature() {
-        return temperature;
+    public String getDate() {
+        return date;
     }
 
-    public void setTemperature(double temperature) {
-        this.temperature = temperature;
+    public void setDate(String date) {
+        this.date = date;
     }
 
-    public int getCode() {
-        return code;
+    public double getMinTemperature() {
+        return minTemperature;
     }
 
-    public void setCode(int code) {
-        this.code = code;
+    public void setMinTemperature(double temperature) {
+        this.minTemperature = temperature;
     }
 
-    public String getDescription() {
-        return description;
+    public double getMaxTemperature() {
+        return maxTemperature;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setMaxTemperature(double temperature) {
+        this.maxTemperature = temperature;
     }
 
-    public int getPcpn() {
+    public int getCodeAtDay() {
+        return codeAtDay;
+    }
+
+    public void setCodeAtDay(int code) {
+        this.codeAtDay = code;
+    }
+
+    public int getCodeAtNight() {
+        return codeAtNight;
+    }
+
+    public void setCodeAtNight(int code) {
+        this.codeAtNight = code;
+    }
+
+    public String getDescAtDay() {
+        return descAtDay;
+    }
+
+    public void setDescAtDay(String description) {
+        this.descAtDay = description;
+    }
+
+    public String getDescAtNight() {
+        return descAtNight;
+    }
+
+    public void setDescAtNight(String description) {
+        this.descAtNight = description;
+    }
+
+    public double getPcpn() {
         return pcpn;
     }
 
-    public void setPcpn(int pcpn) {
+    public void setPcpn(double pcpn) {
         this.pcpn = pcpn;
+    }
+
+    public int getPop() {
+        return pop;
+    }
+
+    public void setPop(int pop) {
+        this.pop = pop;
     }
 
     public int getHum() {
