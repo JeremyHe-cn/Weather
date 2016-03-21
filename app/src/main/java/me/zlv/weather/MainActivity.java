@@ -4,6 +4,7 @@ import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -26,13 +27,13 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class MainActivity extends AppCompatActivity implements Callback<QueryWeatherResult>, View.OnClickListener {
-
-    private FloatingActionButton mFab;
+public class MainActivity extends AppCompatActivity implements Callback<QueryWeatherResult>, SwipeRefreshLayout.OnRefreshListener {
 
     private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
     private Call<QueryWeatherResult> mQueryCall;
     private Toolbar mToolbar;
+
+    private SwipeRefreshLayout mSwipeLayout;
     private ListView mContentLv;
 
     private ForecastAdapter mAdapter;
@@ -61,16 +62,18 @@ public class MainActivity extends AppCompatActivity implements Callback<QueryWea
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
 
-        mFab = (FloatingActionButton) findViewById(R.id.fab);
+        mSwipeLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
         mContentLv = (ListView) findViewById(R.id.content_lv);
     }
 
     private void initWidget() {
         mToolbar.setTitle("深圳");
+
+        mSwipeLayout.setColorSchemeResources(R.color.colorPrimaryDark, R.color.colorPrimary, R.color.colorPrimaryLight);
     }
 
     private void setListener() {
-        mFab.setOnClickListener(this);
+        mSwipeLayout.setOnRefreshListener(this);
     }
 
     @Override
@@ -118,10 +121,7 @@ public class MainActivity extends AppCompatActivity implements Callback<QueryWea
             Toast.makeText(this, "请求失败", Toast.LENGTH_SHORT).show();
         }
 
-        Drawable drawable = mFab.getDrawable();
-        if (drawable instanceof AnimationDrawable) {
-            ((AnimationDrawable) drawable).stop();
-        }
+        mSwipeLayout.setRefreshing(false);
     }
 
     @Override
@@ -130,11 +130,8 @@ public class MainActivity extends AppCompatActivity implements Callback<QueryWea
     }
 
     @Override
-    public void onClick(View v) {
-        Drawable drawable = mFab.getDrawable();
-        if (drawable instanceof AnimationDrawable) {
-            ((AnimationDrawable) drawable).start();
-        }
+    public void onRefresh() {
+        mSwipeLayout.setRefreshing(true);
         mQueryCall.clone().enqueue(MainActivity.this);
     }
 }
